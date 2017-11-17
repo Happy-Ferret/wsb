@@ -1,15 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"log"
 
-	"github.com/qneyrat/wsb/cmd"
+	"github.com/qneyrat/wsb/wsbd/server"
 )
 
 func main() {
-	if err := cmd.RootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	wbd := server.NewServer()
+	err := wbd.Start()
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
 	}
 }

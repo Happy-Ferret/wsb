@@ -4,10 +4,12 @@ import (
 	"log"
 	"net/http"
 
+	uuid "github.com/satori/go.uuid"
+
+	"github.com/qneyrat/wsb/wsbd/api"
 	"github.com/qneyrat/wsb/wsbd/channel"
 	"github.com/qneyrat/wsb/wsbd/client"
 	"github.com/qneyrat/wsb/wsbd/message"
-	uuid "github.com/satori/go.uuid"
 )
 
 type Server struct {
@@ -52,6 +54,7 @@ func (s *Server) Start() error {
 	})
 
 	go s.handleMessages()
+	go api.ListenAndServe(":8001")
 
 	return http.ListenAndServe(":4000", nil)
 }
