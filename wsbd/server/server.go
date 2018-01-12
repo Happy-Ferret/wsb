@@ -1,12 +1,6 @@
 package server
 
 import (
-	"log"
-	"net/http"
-
-	uuid "github.com/satori/go.uuid"
-
-	"github.com/qneyrat/wsb/wsbd/api"
 	"github.com/qneyrat/wsb/wsbd/channel"
 	"github.com/qneyrat/wsb/wsbd/client"
 	"github.com/qneyrat/wsb/wsbd/message"
@@ -15,6 +9,11 @@ import (
 type Server struct {
 	Clients  client.Clients
 	Channels channel.Channels
+	Broker Broker
+}
+
+type Broker interface {
+	handle(c *channel.Channel)
 }
 
 func NewServer() *Server {
@@ -38,23 +37,11 @@ func (s *Server) AddChannel(c *channel.Channel) {
 	s.Channels[c.ID] = c
 }
 
-func (s *Server) Start() error {
-	http.HandleFunc("/", s.handleConnections)
-	http.HandleFunc("/actions", func(w http.ResponseWriter, r *http.Request) {
-		str := `{"message": "` + uuid.NewV4().String() + `"}`
-		log.Printf("new message  %v", str)
+func (s *Server) AddBroker(b Broker) {
+	s.Broker = b
+}
 
-		body := []byte(str)
-		message := message.Message{
-			From: "all",
-			Body: body,
-		}
-
-		s.Channels["all"].Chan <- message
-	})
-
+func (s *Server) Start() {
+	go s.Broker.handle(s.Channels["all"])
 	go s.handleMessages()
-	go api.ListenAndServe(":8001")
-
-	return http.ListenAndServe(":4000", nil)
 }
